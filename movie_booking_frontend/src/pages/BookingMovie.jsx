@@ -6,12 +6,12 @@ import { getMovieDetails } from "../services/api";
 const BookingMovie = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
+  const location = useLocation();
   const [movie, setMovie] = useState(location.state?.movie || null);
   const [show, setShow] = useState(location.state?.show || null);
 
   const navigate = useNavigate();
   const { id } = useParams();
-  const location = useLocation();
 
   useEffect(() => {
     if (!show) {

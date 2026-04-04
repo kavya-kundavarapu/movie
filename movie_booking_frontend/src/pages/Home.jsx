@@ -1,29 +1,68 @@
 import { useEffect, useState } from "react";
-import { getPopularMovies } from "../services/api";
+import { getGenres, getPopularMovies } from "../services/api";
 import { useNavigate } from "react-router-dom";
 const Home = () => {
   const [movies, setMovies] = useState([]);
+  const [genres, setGenres] = useState({});
+  const [selectedGenre, setSelectedGenre] = useState(null);
   const navigate = useNavigate();
-  const genreMap = {
-    28: "Action",
-    35: "Comedy",
-    18: "Drama",
-    27: "Horror",
-    10749: "Romance",
-    53: "Thriller",
-  };
+
   useEffect(() => {
+    // fetch movies
     getPopularMovies()
       .then((res) => setMovies(res.data.results))
       .catch((err) => console.log(err));
-  }, []);
 
+    // fetch genres
+    getGenres()
+      .then((res) => {
+        const map = {};
+        res.data.genres.forEach((g) => {
+          map[g.id] = g.name;
+        });
+        setGenres(map);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+  const filteredMovies = selectedGenre
+    ? movies.filter((movie) => movie.genre_ids.includes(selectedGenre))
+    : movies;
   return (
     <div className="container mt-4">
       <h2 className="mb-4 fw-bold text-center">🎬 Popular Movies</h2>
+      <div className="mb-4 text-center">
+        <button
+          className="btn btn-outline-dark m-1"
+          onClick={() => setSelectedGenre(null)}
+        >
+          All
+        </button>
 
+        {Object.entries(genres).map(([id, name]) => (
+          <button
+            key={id}
+            className={`btn m-1 ${
+              selectedGenre == id ? "btn-dark" : "btn-outline-dark"
+            }`}
+            onClick={() => setSelectedGenre(Number(id))}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
       <div className="row">
-        {movies.map((movie) => (
+        {filteredMovies.length === 0 ? (
+          <h5 className="text-center mt-4">
+            ❌ No movies available for this genre
+          </h5>
+        ) : (
+          filteredMovies.map((movie) => (
+            <div className="" key={movie.id}>
+              {/* your card */}
+            </div>
+          ))
+        )}
+        {filteredMovies.map((movie) => (
           <div className="col-md-3 mb-4" key={movie.id}>
             <div
               className="card h-100 shadow-sm movie-card"
@@ -61,7 +100,14 @@ const Home = () => {
                 <small className="text-muted mb-3">
                   📅 {movie.release_date}
                 </small>
-                <p>🎭 {movie.genre_ids.map((id) => genreMap[id]).join(", ")}</p>
+
+                <p>
+                  🎭{" "}
+                  {movie.genre_ids
+                    .map((id) => genres[id])
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
 
                 <p>💰 ₹{movie.vote_average > 7 ? 250 : 150}</p>
                 {/* BUTTON */}

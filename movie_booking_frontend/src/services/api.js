@@ -12,3 +12,10 @@ export const getPopularMovies = () =>
 export default api;
 export const getMovieDetails = (id) =>
   api.get(`/movie/${id}?api_key=${API_KEY}`);
+export const getGenres = () => {
+  return axios.get("https://api.themoviedb.org/3/genre/movie/list", {
+    params: {
+      api_key: "62b1eaef5c77431465153161f2f772c1",
+    },
+  });
+};
