@@ -27,7 +27,7 @@ const Profile = () => {
       .catch((err) => console.log(err));
   }, []);
 
-  // ✅ DOWNLOAD PDF (FINAL FIXED)
+  // ✅ DOWNLOAD PDF
   const downloadTicket = async (booking) => {
     const pdf = new jsPDF();
 
@@ -40,10 +40,8 @@ const Profile = () => {
     pdf.text(`Theatre: ${booking.theatreName}`, 20, 50);
     pdf.text(`Date: ${booking.showDate}`, 20, 60);
     pdf.text(`Time: ${booking.showTime}`, 20, 70);
-
     pdf.text(`Seats: ${booking.seatNumbers.join(", ")}`, 20, 80);
     pdf.text(`Total Price: ₹${booking.totalPrice}`, 20, 90);
-
     pdf.text(
       `Booked On: ${new Date(booking.createdAt).toLocaleString()}`,
       20,
@@ -51,34 +49,22 @@ const Profile = () => {
     );
 
     try {
-      // ✅ LOAD IMAGE
       const imgUrl = `https://image.tmdb.org/t/p/w500/${booking.posterPath}`;
 
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = imgUrl;
+      const response = await fetch(imgUrl);
+      const blob = await response.blob();
 
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
+      const reader = new FileReader();
+
+      const base64data = await new Promise((resolve) => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
       });
 
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-
-      const imgData = canvas.toDataURL("image/png");
-
-      // ✅ ADD IMAGE
-      pdf.addImage(imgData, "PNG", 140, 10, 50, 60);
+      pdf.addImage(base64data, "PNG", 140, 10, 50, 60);
     } catch (err) {
-      console.log("Image load failed");
+      console.log("Image load failed", err);
     }
-
-    // ✅ QR CODE
     const qrCanvas = document.querySelector(`#qr-${booking._id} canvas`);
     if (qrCanvas) {
       const qrImage = qrCanvas.toDataURL("image/png");
@@ -88,7 +74,7 @@ const Profile = () => {
     pdf.save(`ticket-${booking._id}.pdf`);
   };
 
-  // ✅ PRINT FUNCTION
+  // ✅ PRINT
   const printTicket = (id) => {
     const content = document.getElementById(`ticket-${id}`);
 
@@ -101,7 +87,7 @@ const Profile = () => {
         <head>
           <title>Print Ticket</title>
         </head>
-        <body>
+        <body style="text-align:center;">
           ${content.innerHTML}
         </body>
       </html>
@@ -123,31 +109,34 @@ const Profile = () => {
             <div className="col-md-4 mb-4" key={b._id}>
               <div
                 id={`ticket-${b._id}`}
-                className="card shadow p-3"
+                className="card shadow p-3 text-center"
                 style={{ borderRadius: "10px" }}
               >
-                <h5 className="text-center">🎬 Movie Ticket</h5>
+                <h5 className="mb-3">🎬 Movie Ticket</h5>
                 <hr />
 
-                {/* 🎬 IMAGE */}
-                <img
-                  src={`https://image.tmdb.org/t/p/w500/${b.posterPath}`}
-                  alt="movie"
-                  className="card-img-top"
-                  style={{ borderRadius: "10px" }}
-                />
+                {/* ✅ CENTER ALL CONTENT */}
+                <div className="d-flex flex-column align-items-center">
+                  {/* 🎬 IMAGE */}
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500/${b.posterPath}`}
+                    alt="movie"
+                    style={{
+                      width: "150px",
+                      borderRadius: "10px",
+                    }}
+                    className="mb-3"
+                  />
 
-                <div className="card-body">
+                  {/* 🎭 DETAILS */}
                   <h5>{b.movieTitle}</h5>
 
                   <p>🎭 {b.theatreName}</p>
                   <p>
-                    📅 {b.showDate} | {b.showTime}
+                    📅 {b.showDate} | ⏰ {b.showTime}
                   </p>
-
                   <p>💺 Seats: {b.seatNumbers.join(", ")}</p>
                   <p>💰 Total: ₹{b.totalPrice}</p>
-
                   <p>🧾 Booked on: {new Date(b.createdAt).toLocaleString()}</p>
 
                   {/* QR */}
@@ -156,8 +145,7 @@ const Profile = () => {
                     style={{
                       background: "#fff",
                       padding: "10px",
-                      display: "flex",
-                      justifyContent: "center",
+                      marginTop: "10px",
                     }}
                   >
                     <QRCode value={b._id} size={80} />

@@ -8,18 +8,17 @@ import Booking_Movie from "./pages/BookingMovie";
 import Profile from "./pages/Profile";
 import BookingMovie from "./pages/BookingMovie";
 import Ticket from "./pages/Ticket";
+
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* <Route path="/booking" element={<BookingMovie />} /> */}
         <Route path="/booking/:id" element={<BookingMovie />} />
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         <Route path="/profile" element={<Profile />} />
         <Route path="/ticket" element={<Ticket />}></Route>
       </Routes>

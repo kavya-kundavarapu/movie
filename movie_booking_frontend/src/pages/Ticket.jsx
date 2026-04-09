@@ -17,19 +17,60 @@ const Ticket = () => {
   if (!booking) {
     return <h3 className="text-center mt-5">No Ticket Found ❌</h3>;
   }
-
-  const downloadTicket = () => {
+  const downloadTicket = async () => {
     const input = document.getElementById("ticket");
 
-    html2canvas(input).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
+    if (!input) return;
 
-      const pdf = new jsPDF();
-      pdf.addImage(imgData, "PNG", 10, 10);
-      pdf.save("MovieTicket.pdf");
+    // ✅ wait for images to load
+    const images = input.getElementsByTagName("img");
+
+    await Promise.all(
+      Array.from(images).map(
+        (img) =>
+          new Promise((resolve) => {
+            if (img.complete) resolve();
+            else img.onload = resolve;
+          }),
+      ),
+    );
+
+    // ✅ high quality canvas
+    const canvas = await html2canvas(input, {
+      scale: 2, // 🔥 IMPORTANT (HD quality)
+      useCORS: true,
     });
-  };
 
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = 210;
+    const pageHeight = 295;
+
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let position = 10;
+
+    // ✅ fit content properly
+    if (imgHeight < pageHeight) {
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+    } else {
+      let heightLeft = imgHeight;
+
+      while (heightLeft > 0) {
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        if (heightLeft > 0) {
+          pdf.addPage();
+        }
+      }
+    }
+
+    pdf.save("MovieTicket.pdf");
+  };
   return (
     <div className="container mt-5 text-center">
       <div id="ticket" className="card p-4 shadow-lg">

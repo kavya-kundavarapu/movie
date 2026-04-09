@@ -50,6 +50,7 @@ const Home = () => {
           </button>
         ))}
       </div>
+
       <div className="row">
         {filteredMovies.length === 0 ? (
           <h5 className="text-center mt-4">

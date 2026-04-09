@@ -14,9 +14,18 @@ const Login = () => {
         password,
       });
 
+      // ✅ STORE DATA
       localStorage.setItem("token", res.data.token);
-      navigate("/");
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
       alert("Login Success ✅");
+
+      // 🔥 ROLE BASED REDIRECT
+      if (res.data.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       alert(err.response?.data?.error || "Login failed");
     }
@@ -43,6 +52,7 @@ const Login = () => {
       <button className="btn btn-dark w-100" onClick={handleLogin}>
         Login
       </button>
+
       <p className="mt-3 text-center">
         Don't have an account? <a href="/register">Register</a>
       </p>
